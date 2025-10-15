@@ -1,7 +1,5 @@
 import type { HardhatUserConfig } from "hardhat/config";
 import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
-import "@nomicfoundation/hardhat-verify";
-import "@typechain/hardhat";
 import "dotenv/config";
 
 const config: HardhatUserConfig = {
