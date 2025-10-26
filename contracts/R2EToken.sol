@@ -1,42 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-
-contract RunToEarn {
-    using ECDSA for bytes32;
-
-    IERC20 public token;
-    address public trustedSigner;
-    mapping(address => bool) public hasClaimed;
-
-    event RewardClaimed(address indexed user, uint256 amount);
-
-    constructor(address tokenAddress, address signer) {
-        token = IERC20(tokenAddress);
-        trustedSigner = signer;
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+contract R2EToken is ERC20, Ownable{
+    constructor() ERC20("RUNTOEARN","R2E") Ownable(msg.sender){
+        _mint(msg.sender, 100_000_000*10**decimals());
     }
 
-    function claimReward(uint256 amount, bytes calldata signature) external {
-        require(!hasClaimed[msg.sender], "Already claimed");
-
-        // 1) Buat message hash (harus sama dengan yang backend sign)
-        bytes32 messageHash = keccak256(abi.encodePacked(msg.sender, amount));
-
-        // 2) Tambahkan Ethereum signed message prefix manual
-        bytes32 ethSignedHash = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
-        );
-
-        // 3) Recover signer dari signature
-        address recovered = ECDSA.recover(ethSignedHash, signature);
-        require(recovered == trustedSigner, "Invalid signature");
-
-        // 4) Eksekusi transfer reward
-        hasClaimed[msg.sender] = true;
-        require(token.transfer(msg.sender, amount), "Transfer failed");
-
-        emit RewardClaimed(msg.sender, amount);
+    function mintReward(address to, uint256 amount) external onlyOwner(){
+        _mint(to, amount);
     }
 }
